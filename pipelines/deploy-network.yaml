@@ -1,0 +1,17 @@
+trigger: none
+
+name: DeployNetwork
+
+variables:
+
+pool: vmImage-latest
+
+stages:
+- stage: 'Deploy_VNET'
+  jobs:
+    - job: 'Deploy_VNET'
+      displayName: 'Deploy VNET'
+      name: Deploy
+      steps:
+      - task: AzureCLI@2
+      
