@@ -19,7 +19,6 @@
 * [x] Subnets - Initial Development complete
 * [x] VNET sizes (small, regular, large) - Initial Development complete
 * [x] Set "privateEndpointNetworkPolicies" to "Disabled" - Initial Development complete
-* [ ] Private endpoint policy
 * [ ] Peering
 * [ ] NSG Flowlogs
 * [ ] Write destory network script
@@ -48,7 +47,16 @@ var dnsServers = [
   '10.0.0.2'
   '10.0.0.3'
 ]
+//TODO: Switch dependent on which environment
 var nextHopIpAddress = '10.10.0.1'
+var serviceEndPoints = [
+  {
+    service: 'Microsoft.Storage'
+  }
+  {
+    service: 'Microsoft.KeyVault'
+  }
+]
 
 // obtain nsg resource ids
 resource nsgSubnet1 'Microsoft.Network/networkSecurityGroups@2022-05-01' existing = {
@@ -80,19 +88,12 @@ resource nsgSubnet6 'Microsoft.Network/networkSecurityGroups@2022-05-01' existin
 var subnets = [
   {
     // 1 - web/front end
-    name: (vnetOffering == 'small') ? 'snet-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octets[2]}.0_25' : 'nsg-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octets[2]}.0_24'
+    name: (vnetOffering == 'small') ? 'snet-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octets[2]}.0_25' : 'snet-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octets[2]}.0_24'
     addressPrefix: (vnetOffering == 'small') ? '${octets[0]}.${octets[1]}.${octets[2]}.0/25' : '${octets[0]}.${octets[1]}.${octets[2]}.0/24'
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet1.id
     routeTableId: routeTable.outputs.resourceId
-    serviceEndpoints: [
-      {
-        service: 'Microsoft.Storage'
-      }
-      {
-        service: 'Microsoft.KeyVault'
-      }
-    ]
+    serviceEndpoints: serviceEndPoints
   }
   {
     // 2 - application
@@ -101,14 +102,7 @@ var subnets = [
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet2.id
     routeTableId: routeTable.outputs.resourceId
-    serviceEndpoints: [
-      {
-        service: 'Microsoft.Storage'
-      }
-      {
-        service: 'Microsoft.KeyVault'
-      }
-    ]
+    serviceEndpoints: serviceEndPoints
   }
   {
     // 3 - database
@@ -117,14 +111,7 @@ var subnets = [
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet3.id
     routeTableId: routeTable.outputs.resourceId
-    serviceEndpoints: [
-      {
-        service: 'Microsoft.Storage'
-      }
-      {
-        service: 'Microsoft.KeyVault'
-      }
-    ]
+    serviceEndpoints: serviceEndPoints
   }
   {
     // 4 - Tooling
@@ -133,14 +120,7 @@ var subnets = [
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet4.id
     routeTableId: routeTable.outputs.resourceId
-    serviceEndpoints: [
-      {
-        service: 'Microsoft.Storage'
-      }
-      {
-        service: 'Microsoft.KeyVault'
-      }
-    ]
+    serviceEndpoints: serviceEndPoints
   }
   {
     // 5 - Central Tooling
@@ -149,14 +129,7 @@ var subnets = [
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet5.id
     routeTableId: routeTable.outputs.resourceId
-    serviceEndpoints: [
-      {
-        service: 'Microsoft.Storage'
-      }
-      {
-        service: 'Microsoft.KeyVault'
-      }
-    ]
+    serviceEndpoints: serviceEndPoints
   }
 ]
 
@@ -211,14 +184,7 @@ module largeSubnet './modules/Microsoft.Network/virtualNetworks/subnets/deploy.b
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet6.id
     routeTableId: routeTable.outputs.resourceId
-    serviceEndpoints: [
-      {
-        service: 'Microsoft.Storage'
-      }
-      {
-        service: 'Microsoft.KeyVault'
-      }
-    ]
+    serviceEndpoints: serviceEndPoints
   }
   dependsOn: [
     virtualNetwork
