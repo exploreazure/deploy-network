@@ -11,10 +11,7 @@
 
 /**
 * TODO: 
-* [ ] Private endpoint policy
 * [x] Add a parameter to allow user to tailor subnet address cidr block for large Custom Subnet
-* [ ] Peering
-* [ ] NSG Flowlogs
 * [x] Virtual Network Core - Initial Development complete
 * [x] UDR - Initial Development complete
 * [x] NSGs - Initial Development complete
@@ -22,7 +19,11 @@
 * [x] Subnets - Initial Development complete
 * [x] VNET sizes (small, regular, large) - Initial Development complete
 * [x] Set "privateEndpointNetworkPolicies" to "Disabled" - Initial Development complete
+* [ ] Private endpoint policy
+* [ ] Peering
+* [ ] NSG Flowlogs
 * [ ] Write destory network script
+* [ ] Resource lock on network resource group
 */
 
 param subscriptionName string
