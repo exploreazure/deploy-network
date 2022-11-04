@@ -4,16 +4,33 @@
 
 // Must run resourceGroups and networkPreq.bicep before this script
 
-// az cli example below
+// az cli example below - must run az login and az account set --subscription "<subname>" to setup environment
 // small az deployment group create --resource-group 'rg-zt0004-uks-network' --template-file 'network.bicep' --parameters subscriptionName='zt0004' region='uks' location='uksouth' vnetOffering='small' addressSpace='10.0.0.0/23'
 // regular az deployment group create --resource-group 'rg-zt0004-uks-network' --template-file 'network.bicep' --parameters subscriptionName='zt0004' region='uks' location='uksouth' vnetOffering='regular' addressSpace='10.0.0.0/22'
-// large az deployment group create --resource-group 'rg-zt0004-uks-network' --template-file 'network.bicep' --parameters subscriptionName='zt0004' region='uks' location='uksouth' vnetOffering='large' addressSpace='10.0.0.0/21'
+// large az deployment group create --resource-group 'rg-zt0004-uks-network' --template-file 'network.bicep' --parameters subscriptionName='zt0004' region='uks' location='uksouth' vnetOffering='large' addressSpace='10.0.0.0/21' cidrLarge='23'
+
+/**
+* TODO: 
+* [ ] Private endpoint policy
+* [x] Add a parameter to allow user to tailor subnet address cidr block for large Custom Subnet
+* [ ] Peering
+* [ ] NSG Flowlogs
+* [x] Virtual Network Core - Initial Development complete
+* [x] UDR - Initial Development complete
+* [x] NSGs - Initial Development complete
+* [x] Service Endpoints - Initial Development complete
+* [x] Subnets - Initial Development complete
+* [x] VNET sizes (small, regular, large) - Initial Development complete
+* [x] Set "privateEndpointNetworkPolicies" to "Disabled" - Initial Development complete
+* [ ] Write destory network script
+*/
 
 param subscriptionName string
 param region string = 'uks'
 param addressSpace string = '10.0.0.0/23'
 param vnetOffering string
 param location string = 'uksouth'
+param cidrLarge string = ''
 
 var addressSpaces = array(addressSpace)
 
@@ -30,6 +47,7 @@ var dnsServers = [
   '10.0.0.2'
   '10.0.0.3'
 ]
+var nextHopIpAddress = '10.10.0.1'
 
 // obtain nsg resource ids
 resource nsgSubnet1 'Microsoft.Network/networkSecurityGroups@2022-05-01' existing = {
@@ -53,7 +71,7 @@ resource nsgSubnet5 'Microsoft.Network/networkSecurityGroups@2022-05-01' existin
   scope: resourceGroup('rg-${subscriptionName}-${region}-nsg')
 }
 resource nsgSubnet6 'Microsoft.Network/networkSecurityGroups@2022-05-01' existing = if (vnetOffering == 'large') {
-  name: 'nsg-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octet3add4}.0_22'
+  name: 'nsg-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octet3add4}.0_${cidrLarge}'
   scope: resourceGroup('rg-${subscriptionName}-${region}-nsg')
 }
 
@@ -65,6 +83,7 @@ var subnets = [
     addressPrefix: (vnetOffering == 'small') ? '${octets[0]}.${octets[1]}.${octets[2]}.0/25' : '${octets[0]}.${octets[1]}.${octets[2]}.0/24'
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet1.id
+    routeTableId: routeTable.outputs.resourceId
     serviceEndpoints: [
       {
         service: 'Microsoft.Storage'
@@ -80,6 +99,7 @@ var subnets = [
     addressPrefix: (vnetOffering == 'small') ? '${octets[0]}.${octets[1]}.${octets[2]}.128/25' : '${octets[0]}.${octets[1]}.${octet3add1}.0/24'
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet2.id
+    routeTableId: routeTable.outputs.resourceId
     serviceEndpoints: [
       {
         service: 'Microsoft.Storage'
@@ -95,6 +115,7 @@ var subnets = [
     addressPrefix: (vnetOffering == 'small') ? '${octets[0]}.${octets[1]}.${octet3add1}.0/25' : '${octets[0]}.${octets[1]}.${octet3add2}.0/24'
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet3.id
+    routeTableId: routeTable.outputs.resourceId
     serviceEndpoints: [
       {
         service: 'Microsoft.Storage'
@@ -110,6 +131,7 @@ var subnets = [
     addressPrefix: (vnetOffering == 'small') ? '${octets[0]}.${octets[1]}.${octet3add1}.128/26' : '${octets[0]}.${octets[1]}.${octet3add3}.0/25'
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet4.id
+    routeTableId: routeTable.outputs.resourceId
     serviceEndpoints: [
       {
         service: 'Microsoft.Storage'
@@ -125,6 +147,7 @@ var subnets = [
     addressPrefix: (vnetOffering == 'small') ? '${octets[0]}.${octets[1]}.${octet3add1}.192/26' : '${octets[0]}.${octets[1]}.${octet3add3}.128/25'
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet5.id
+    routeTableId: routeTable.outputs.resourceId
     serviceEndpoints: [
       {
         service: 'Microsoft.Storage'
@@ -136,6 +159,33 @@ var subnets = [
   }
 ]
 
+
+//TODO: Check information in user story
+// Deploy Route Table
+module routeTable './modules/Microsoft.Network/routeTables/deploy.bicep' = {
+  name: 'vnet-route-table'
+  params: {
+    name: 'udr-${subscriptionName}-${region}-${addressSpace1}_${cidr1}'
+    routes: [
+      {
+        name: 'vNet-local'
+        properties: {
+          addressPrefix: addressSpaces[0]
+          nextHopType: 'vnetLocal'
+        }
+      }
+      {
+        name: 'Default-route'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopIpAddress: nextHopIpAddress 
+          nextHopType: 'virtualAppliance'
+        }
+      }
+    ]
+  }
+}
+
 module virtualNetwork './modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
   name: 'vnet-${subscriptionName}-${region}-${addressSpace1}_${cidr1}'
   params: {
@@ -145,17 +195,21 @@ module virtualNetwork './modules/Microsoft.Network/virtualNetworks/deploy.bicep'
     subnets: subnets
     dnsServers: dnsServers
   }
+  dependsOn: [
+    routeTable
+  ]
 }
 
 module largeSubnet './modules/Microsoft.Network/virtualNetworks/subnets/deploy.bicep' = if (vnetOffering == 'large') {
   // 6 - Customer subnet - Only deploy for large vnet offering
-  name: 'snet-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octet3add4}.0_22'
+  name: 'snet-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octet3add4}.0_${cidrLarge}'
   params: {
-    name: 'snet-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octet3add4}.0_22'
+    name: 'snet-${subscriptionName}-${region}-${octets[0]}.${octets[1]}.${octet3add4}.0_${cidrLarge}'
     virtualNetworkName: 'vnet-${subscriptionName}-${region}-${addressSpace1}_${cidr1}'
-    addressPrefix: '${octets[0]}.${octets[1]}.${octet3add4}.0/22'
+    addressPrefix: '${octets[0]}.${octets[1]}.${octet3add4}.0/${cidrLarge}'
     privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroupId: nsgSubnet6.id
+    routeTableId: routeTable.outputs.resourceId
     serviceEndpoints: [
       {
         service: 'Microsoft.Storage'
