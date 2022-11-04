@@ -2,7 +2,7 @@
 // Version 1.0
 // 01/11/2022
 
-// az cli example below
+// az cli example below - must run az login and az account set --subscription "<subname>" to setup environment
 // az deployment sub create --location uksouth --parameters subscriptionName='zt0004' region='uks' --template-file 'resourceGroups.bicep'
 
 param subscriptionName string
