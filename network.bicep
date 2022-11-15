@@ -9,6 +9,16 @@
 // regular az deployment group create --resource-group 'rg-zt0004-uks-network' --template-file 'network.bicep' --parameters subscriptionName='zt0004' region='uks' location='uksouth' vnetOffering='regular' addressSpace='10.0.0.0/22'
 // large az deployment group create --resource-group 'rg-zt0004-uks-network' --template-file 'network.bicep' --parameters subscriptionName='zt0004' region='uks' location='uksouth' vnetOffering='large' addressSpace='10.0.0.0/21' cidrLarge='23'
 
+// PowerShell
+// Connect-AzAccount
+// Get-AzSubscription
+//
+// small New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-network' -TemplateFile 'network.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'small' -addressSpace '10.0.0.0/23'
+// regular New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-network' -TemplateFile 'network.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'regular' -addressSpace '10.0.0.0/22'
+// large New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-network' -TemplateFile 'network.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'large' -addressSpace '10.0.0.0/21' -cidrLarge '23'
+
+
+
 /**
 * TODO: 
 * [x] Add a parameter to allow user to tailor subnet address cidr block for large Custom Subnet
@@ -23,6 +33,12 @@
 * [ ] NSG Flowlogs
 * [ ] Write destory network script
 * [ ] Resource lock on network resource group
+* [ ] Trigger using PowerShell
+* [ ] Traffic Analytics (Policy)
+
+* [x] Make serviceendpoints a variable
+* [ ] Naming convention set in calling PowerShell script, currently calculated in Bicep code
+* [ ] Create one PowerShell script to trigger all three tasks
 */
 
 param subscriptionName string

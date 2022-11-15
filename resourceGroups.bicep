@@ -5,6 +5,14 @@
 // az cli example below - must run az login and az account set --subscription "<subname>" to setup environment
 // az deployment sub create --location uksouth --parameters subscriptionName='zt0004' region='uks' --template-file 'resourceGroups.bicep'
 
+
+// PowerShell
+// Connect-AzAccount
+// Get-AzSubscription
+//
+// New-AzSubscriptionDeployment -location uksouth -subscriptionName 'zt0004' -region 'uks' -templateFile 'resourceGroups.bicep'
+
+
 param subscriptionName string
 param region string = 'uks'
 param location string = 'uksouth'
