@@ -13,11 +13,11 @@
 // Connect-AzAccount
 // Get-AzSubscription
 //
-// small New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-network' -TemplateFile 'network.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'small' -addressSpace '10.0.0.0/23'
+// small New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-network' -TemplateFile 'network.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'small' -addressSpace '10.10.0.0/23'
 // regular New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-network' -TemplateFile 'network.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'regular' -addressSpace '10.0.0.0/22'
 // large New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-network' -TemplateFile 'network.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'large' -addressSpace '10.0.0.0/21' -cidrLarge '23'
 
-
+// peered small New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-network' -TemplateFile 'network.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'small' -addressSpace '10.10.0.0/23' -remoteVirtualNetworkId '/subscriptions/65502239-ebde-490b-935e-65ffc2296f87/resourceGroups/rg-network-cg01/providers/Microsoft.Network/virtualNetworks/vnet01' -virtualNetworkPeeringName 'vnp-central-sys'
 
 /**
 * TODO: 
@@ -47,6 +47,8 @@ param addressSpace string = '10.0.0.0/23'
 param vnetOffering string
 param location string = 'uksouth'
 param cidrLarge string = ''
+param remoteVirtualNetworkId string = ''
+param virtualNetworkPeeringName string = ''
 
 var addressSpaces = array(addressSpace)
 
@@ -184,6 +186,24 @@ module virtualNetwork './modules/Microsoft.Network/virtualNetworks/deploy.bicep'
     addressPrefixes: addressSpaces
     subnets: subnets
     dnsServers: dnsServers
+    virtualNetworkPeerings: (remoteVirtualNetworkId == '') ? [] : [
+      {
+        allowForwardedTraffic: false
+        allowGatewayTransit: false
+        allowVirtualNetworkAccess: true
+
+        remotePeeringAllowForwardedTraffic: false
+        useRemoteGateways: false
+        remotePeeringAllowVirtualNetworkAccess: true
+
+        remotePeeringEnabled: true
+
+        name: virtualNetworkPeeringName
+
+        remotePeeringName: 'vnp-${subscriptionName}-${region}-${addressSpace1}_${cidr1}'
+        remoteVirtualNetworkId: remoteVirtualNetworkId
+      }
+    ]
   }
   dependsOn: [
     routeTable

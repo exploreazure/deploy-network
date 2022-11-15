@@ -13,7 +13,7 @@
 // Connect-AzAccount
 // Get-AzSubscription
 //
-// Small New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-nsg' -TemplateFile 'networkNSGs.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'small' -addressSpace '10.0.0.0/23'
+// Small New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-nsg' -TemplateFile 'networkNSGs.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'small' -addressSpace '10.10.0.0/23'
 // Regular New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-nsg' -TemplateFile 'networkNSGs.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'regular' -addressSpace '10.0.0.0/22'
 // large New-AzResourceGroupDeployment -ResourceGroupName 'rg-zt0004-uks-nsg' -TemplateFile 'networkNSGs.bicep' -subscriptionName 'zt0004' -region 'uks' -location 'uksouth' -vnetOffering 'large' -addressSpace '10.0.0.0/21' -cidrLarge '23'
 
